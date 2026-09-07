@@ -49,12 +49,18 @@ openssl rand -base64 32
 openssl rand -base64 32
 ```
 
-Điền `.env.local`, sau đó chạy migration và ứng dụng:
+Điền `.env.local`, sau đó chạy migration và ứng dụng. `drizzle.config.ts`
+tự nạp các file environment theo quy ước của Next.js:
 
 ```bash
 npm run db:migrate
 npm run dev
 ```
+
+Vercel không cho CLI tải các biến được đánh dấu Sensitive từ Production. Nếu
+`vercel env run` báo secret không thể pull, hãy sao chép `DATABASE_URL` từ trang
+Connection Details của Neon vào `.env.local`, rồi chạy trực tiếp
+`npm run db:migrate`. Không cần và không nên tắt thuộc tính Sensitive trên Vercel.
 
 Mở `http://localhost:3000` và đăng nhập bằng `ADMIN_USERNAME` cùng password đã dùng để tạo hash.
 
