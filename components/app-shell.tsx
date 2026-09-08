@@ -1,8 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BookOpen, Building2, Check, Copy, LayoutDashboard, LogOut, Menu, Moon, Network, ShieldCheck, Sun, X } from "lucide-react";
+import { BookOpen, Building2, Check, Copy, LayoutDashboard, LogOut, Menu, Moon, Network, Sun, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils/cn";
 
@@ -44,7 +45,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {open && <button className="fixed inset-0 z-40 bg-slate-950/50 lg:hidden" onClick={() => setOpen(false)} aria-label="Đóng menu" />}
       <aside className={cn("fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col border-r bg-[var(--surface)] p-4 transition-transform lg:sticky lg:top-0 lg:h-screen", open ? "translate-x-0" : "-translate-x-full lg:translate-x-0")}>
         <div className="mb-8 flex items-center gap-3 px-2 py-2">
-          <div className="grid size-10 place-items-center rounded-xl bg-blue-600 text-white"><ShieldCheck size={22} /></div>
+          <Image src="/app-logo.webp" alt="WireGuard Manager" width={40} height={40} priority className="size-10 rounded-xl object-cover shadow-sm" />
           <div><div className="font-bold">WireGuard</div><div className="text-xs text-[var(--muted)]">Network Manager</div></div>
           <button className="ml-auto lg:hidden" onClick={() => setOpen(false)} aria-label="Đóng menu"><X size={20} /></button>
         </div>
