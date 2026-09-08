@@ -4,6 +4,7 @@ import { getAdminSession } from "@/lib/auth/session";
 import { decryptSecret } from "@/lib/security";
 import { getPeerContext } from "@/lib/routeros/peer-service";
 import { buildClientConfig } from "@/lib/wireguard/config";
+import { buildClientTunnelName, buildLinuxInstallCommand, buildWindowsInstallCommand } from "@/lib/wireguard/install-command";
 
 export const runtime = "nodejs";
 
@@ -34,6 +35,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     });
     const format = request.nextUrl.searchParams.get("format") ?? "text";
     const headers = { "Cache-Control": "no-store, private" };
+    const tunnelName = buildClientTunnelName(context.peer.name, context.peer.id);
+    if (format === "linux-command" || format === "windows-command") {
+      const command = format === "linux-command"
+        ? buildLinuxInstallCommand(config, tunnelName)
+        : buildWindowsInstallCommand(config, tunnelName);
+      return NextResponse.json({ command, tunnelName }, { headers });
+    }
     if (format === "qr") {
       const png = await QRCode.toBuffer(config, { errorCorrectionLevel: "M", margin: 2, width: 420 });
       return new NextResponse(new Uint8Array(png), { headers: { ...headers, "Content-Type": "image/png" } });
