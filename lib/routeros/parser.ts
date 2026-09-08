@@ -43,3 +43,24 @@ export function parseRouterOsBytes(value?: string) {
   };
   return Math.round(Number(match[1]) * (multipliers[(match[2] ?? "B").toLowerCase()] ?? 1));
 }
+
+export function parseRouterOsIntervalSeconds(value?: string, fallback = 0) {
+  const normalized = value?.trim().toLowerCase();
+  if (!normalized) return fallback;
+
+  if (/^\d+(?:\.\d+)?$/.test(normalized)) return Math.round(Number(normalized));
+
+  const clock = normalized.match(/^(?:(\d+)w)?(?:(\d+)d)?(?:(\d+):)?(\d{1,2}):(\d{2})$/);
+  if (clock) {
+    const [, weeks = "0", days = "0", hours = "0", minutes, seconds] = clock;
+    return Number(weeks) * 604800 + Number(days) * 86400 + Number(hours) * 3600 + Number(minutes) * 60 + Number(seconds);
+  }
+
+  const parts = [...normalized.matchAll(/(\d+(?:\.\d+)?)(w|d|h|m|s)/g)];
+  if (parts.length && parts.map((part) => part[0]).join("") === normalized) {
+    const multipliers: Record<string, number> = { w: 604800, d: 86400, h: 3600, m: 60, s: 1 };
+    return Math.round(parts.reduce((total, part) => total + Number(part[1]) * multipliers[part[2]], 0));
+  }
+
+  return fallback;
+}

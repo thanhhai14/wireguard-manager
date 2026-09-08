@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseRouterOsBytes, parseRouterOsDetail, parseRouterOsDuration } from "./parser";
+import { parseRouterOsBytes, parseRouterOsDetail, parseRouterOsDuration, parseRouterOsIntervalSeconds } from "./parser";
 
 describe("RouterOS output parser", () => {
   it("joins wrapped detail records and preserves flags", () => {
@@ -19,5 +19,13 @@ Flags: X - disabled; R - running
     const parsed = parseRouterOsDuration("1m30s");
     expect(parsed?.getTime()).toBeLessThanOrEqual(before - 89_000);
     expect(parseRouterOsBytes("1.5MiB")).toBe(1_572_864);
+  });
+
+  it("parses RouterOS interval formats without producing NaN", () => {
+    expect(parseRouterOsIntervalSeconds("25s", 25)).toBe(25);
+    expect(parseRouterOsIntervalSeconds("00:00:25", 25)).toBe(25);
+    expect(parseRouterOsIntervalSeconds("1d02:03:04", 25)).toBe(93_784);
+    expect(parseRouterOsIntervalSeconds("1m30s", 25)).toBe(90);
+    expect(parseRouterOsIntervalSeconds("unexpected", 25)).toBe(25);
   });
 });

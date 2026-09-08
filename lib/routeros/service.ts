@@ -11,7 +11,7 @@ import {
   wireguardInterfaces,
 } from "@/lib/db/schema";
 import { decryptSecret } from "@/lib/security";
-import { parseRouterOsBytes, parseRouterOsDuration, type RouterOsRecord } from "./parser";
+import { parseRouterOsBytes, parseRouterOsDuration, parseRouterOsIntervalSeconds, type RouterOsRecord } from "./parser";
 import { inspectRouter, readRouterConfiguration } from "./client";
 import type { RouterConnection } from "./ssh";
 
@@ -176,7 +176,7 @@ export async function syncRouter(routerId: string) {
               name: item.name || existing.name,
               comment: item.comment || existing.comment,
               assignedAddress,
-              persistentKeepalive: Number((item["persistent-keepalive"] ?? "25").replace(/s$/, "")),
+              persistentKeepalive: parseRouterOsIntervalSeconds(item["persistent-keepalive"], 25),
               isDisabled: item.disabled === "yes" || item._flags?.includes("X") === true,
             } : {}),
             routerRevision,
@@ -200,7 +200,7 @@ export async function syncRouter(routerId: string) {
             publicKey,
             appliedPublicKey: publicKey,
             assignedAddress,
-            persistentKeepalive: Number((item["persistent-keepalive"] ?? "25").replace(/s$/, "")),
+            persistentKeepalive: parseRouterOsIntervalSeconds(item["persistent-keepalive"], 25),
             isDisabled: item.disabled === "yes" || item._flags?.includes("X") === true,
             origin: "router_import",
             desiredAction: "none",
