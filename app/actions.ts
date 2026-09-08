@@ -18,6 +18,7 @@ function text(form: FormData, key: string) {
 
 const idSchema = z.string().uuid();
 const requiredText = z.string().trim().min(1).max(255);
+const sshCredential = z.string().trim().min(1).max(32_768);
 
 export async function createCompany(form: FormData) {
   await requireAdmin();
@@ -66,7 +67,7 @@ export async function createRouter(form: FormData) {
   const db = getDb();
   const networkId = idSchema.parse(text(form, "networkId"));
   const authType = z.enum(["private_key", "password"]).parse(text(form, "authType"));
-  const secret = requiredText.parse(text(form, "secret"));
+  const secret = sshCredential.parse(text(form, "secret"));
   const [router] = await db.insert(routers).values({
     networkId,
     name: requiredText.parse(text(form, "name")),
@@ -88,7 +89,8 @@ export async function updateRouter(form: FormData) {
   if (!current) throw new Error("Không tìm thấy router");
   const host = requiredText.parse(text(form, "host"));
   const sshPort = z.coerce.number().int().min(1).max(65535).parse(text(form, "sshPort"));
-  const secret = text(form, "secret");
+  const rawSecret = text(form, "secret");
+  const secret = rawSecret ? sshCredential.parse(rawSecret) : "";
   await db.update(routers).set({
     name: requiredText.parse(text(form, "name")),
     host,
