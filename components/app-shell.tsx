@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Building2, LayoutDashboard, LogOut, Menu, Moon, Network, ShieldCheck, Sun, X } from "lucide-react";
+import { BookOpen, Building2, Check, Copy, LayoutDashboard, LogOut, Menu, Moon, Network, ShieldCheck, Sun, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils/cn";
 
@@ -12,10 +12,16 @@ const navigation = [
   { href: "/networks", label: "Networks", icon: Network },
 ];
 
+const installCommands = {
+  linux: "if command -v apt-get >/dev/null 2>&1; then sudo apt-get update && sudo apt-get install -y wireguard; elif command -v dnf >/dev/null 2>&1; then sudo dnf install -y wireguard-tools; elif command -v pacman >/dev/null 2>&1; then sudo pacman -S --needed wireguard-tools; elif command -v zypper >/dev/null 2>&1; then sudo zypper install -y wireguard-tools; elif command -v apk >/dev/null 2>&1; then sudo apk add wireguard-tools; else echo 'Không tìm thấy package manager được hỗ trợ'; exit 1; fi",
+  windows: "winget install --id WireGuard.WireGuard --exact --source winget --accept-source-agreements --accept-package-agreements",
+};
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
   const [dark, setDark] = useState(() => typeof document !== "undefined" && document.documentElement.classList.contains("dark"));
   if (pathname === "/login") return children;
 
@@ -50,10 +56,28 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </nav>
         <div className="mt-auto space-y-1 border-t pt-4">
           <button onClick={toggleTheme} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[var(--muted)] hover:bg-[var(--surface-soft)]">{dark ? <Sun size={18} /> : <Moon size={18} />}{dark ? "Chế độ sáng" : "Chế độ tối"}</button>
+          <button onClick={() => { setGuideOpen(true); setOpen(false); }} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[var(--muted)] hover:bg-[var(--surface-soft)] hover:text-[var(--foreground)]"><BookOpen size={18} />Guide cài WireGuard</button>
           <button onClick={logout} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[var(--muted)] hover:bg-red-500/10 hover:text-red-500"><LogOut size={18} />Đăng xuất</button>
         </div>
       </aside>
       <main className="min-w-0 px-4 pb-10 pt-20 sm:px-6 lg:px-10 lg:pt-8">{children}</main>
+      {guideOpen && <InstallGuide onClose={() => setGuideOpen(false)} />}
     </div>
   );
+}
+
+function InstallGuide({ onClose }: { onClose: () => void }) {
+  const [copied, setCopied] = useState<"linux" | "windows" | null>(null);
+
+  async function copy(command: string, os: "linux" | "windows") {
+    await navigator.clipboard.writeText(command);
+    setCopied(os);
+    window.setTimeout(() => setCopied((current) => current === os ? null : current), 2_000);
+  }
+
+  return <div className="fixed inset-0 z-[70] grid place-items-center bg-slate-950/65 p-4" onClick={onClose}><div role="dialog" aria-modal="true" aria-labelledby="install-guide-title" className="card max-h-[90vh] w-full max-w-3xl overflow-y-auto p-5 shadow-2xl sm:p-6" onClick={(event) => event.stopPropagation()}><div className="flex items-start justify-between gap-4"><div><h2 id="install-guide-title" className="text-lg font-bold">Cài đặt WireGuard client</h2><p className="mt-1 text-sm text-[var(--muted)]">Chọn đúng hệ điều hành, sao chép lệnh và chạy trong Terminal.</p></div><button className="btn-secondary !p-2" onClick={onClose} aria-label="Đóng guide"><X size={17} /></button></div><div className="mt-6 space-y-6"><GuideCommand title="Linux · Bash" note="Hỗ trợ Ubuntu/Debian, Fedora, Arch, openSUSE và Alpine. Tài khoản cần quyền sudo." command={installCommands.linux} copied={copied === "linux"} onCopy={() => copy(installCommands.linux, "linux")} /><GuideCommand title="Windows · PowerShell" note="Mở PowerShell bằng Run as Administrator. Yêu cầu winget có sẵn trên Windows." command={installCommands.windows} copied={copied === "windows"} onCopy={() => copy(installCommands.windows, "windows")} /></div><p className="mt-6 rounded-xl bg-blue-500/10 p-3 text-xs leading-5 text-blue-600 dark:text-blue-400">Sau khi cài xong, quay lại peer và bấm biểu tượng Terminal để lấy lệnh cấu hình và kích hoạt tunnel.</p></div></div>;
+}
+
+function GuideCommand({ title, note, command, copied, onCopy }: { title: string; note: string; command: string; copied: boolean; onCopy: () => void }) {
+  return <section><div className="mb-2 flex items-end justify-between gap-3"><div><h3 className="text-sm font-semibold">{title}</h3><p className="mt-1 text-xs leading-5 text-[var(--muted)]">{note}</p></div><button className="btn-secondary shrink-0 !px-3 !py-2 text-xs" onClick={onCopy}>{copied ? <Check size={15} className="text-emerald-500" /> : <Copy size={15} />}{copied ? "Đã copy" : "Copy"}</button></div><pre className="overflow-x-auto whitespace-pre-wrap break-all rounded-xl bg-slate-950 p-4 font-mono text-xs leading-5 text-slate-100">{command}</pre></section>;
 }
