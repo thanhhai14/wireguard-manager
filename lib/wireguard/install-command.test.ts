@@ -22,7 +22,11 @@ describe("WireGuard client install commands", () => {
     const command = buildWindowsInstallCommand(config, "wg-client-a1b2");
     expect(command).not.toContain("PrivateKey = secret=");
     expect(command).toContain("WireGuard\\wireguard.exe");
+    expect(command).toContain("Get-Service -Name 'WireGuardTunnel$*'");
+    expect(command).toContain("/uninstalltunnelservice $old");
+    expect(command).toContain("Van con WireGuard tunnel service");
     expect(command).toContain("/installtunnelservice $p");
     expect(command).toContain("icacls.exe");
+    expect(command.indexOf("/uninstalltunnelservice $old")).toBeLessThan(command.indexOf("/installtunnelservice $p"));
   });
 });
