@@ -26,6 +26,9 @@ describe("WireGuard client install commands", () => {
     expect(command).toContain("/uninstalltunnelservice $old");
     expect(command).toContain("Van con WireGuard tunnel service");
     expect(command).toContain("/installtunnelservice $p");
+    expect(command).toContain("AddSeconds(30)");
+    expect(command).toContain("Tim thay:");
+    expect(command).toContain("Mong doi:");
     expect(command).toContain("icacls.exe");
     expect(command.indexOf("/uninstalltunnelservice $old")).toBeLessThan(command.indexOf("/installtunnelservice $p"));
   });
