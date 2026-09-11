@@ -292,9 +292,23 @@ Write-Host "  $fileXuLy"
 Write-Host ""
 Write-Host "Xoa Scheduled Task cu neu ton tai..."
 
-schtasks.exe /Delete `
-    /TN "$tenTacVu" `
-    /F 2>$null | Out-Null
+$tacVuCu = Get-ScheduledTask `
+    -TaskPath "\" `
+    -TaskName $tenTacVu `
+    -ErrorAction SilentlyContinue
+
+if ($null -ne $tacVuCu) {
+    Unregister-ScheduledTask `
+        -TaskPath "\" `
+        -TaskName $tenTacVu `
+        -Confirm:$false `
+        -ErrorAction Stop
+
+    Write-Host "Da xoa Scheduled Task cu."
+}
+else {
+    Write-Host "Scheduled Task chua ton tai, tiep tuc cai moi."
+}
 
 Write-Host "Tao Scheduled Task..."
 
