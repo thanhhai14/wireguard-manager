@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BookOpen, Building2, Check, Copy, Download, LayoutDashboard, LogOut, Menu, Moon, Network, Sun, X } from "lucide-react";
+import { BookOpen, Building2, Check, Copy, Download, LayoutDashboard, LoaderCircle, LogOut, Menu, Moon, Network, Sun, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils/cn";
 import { buildCompressedPowerShellCommand } from "@/lib/wireguard/browser-powershell";
@@ -26,6 +26,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
+  const [logoutBusy, setLogoutBusy] = useState(false);
   const [dark, setDark] = useState(() => typeof document !== "undefined" && document.documentElement.classList.contains("dark"));
   if (pathname === "/login") return children;
 
@@ -37,9 +38,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   async function logout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login");
-    router.refresh();
+    setLogoutBusy(true);
+    try {
+      const response = await fetch("/api/auth/logout", { method: "POST" });
+      if (!response.ok) throw new Error("Không thể đăng xuất");
+      router.push("/login");
+      router.refresh();
+    } catch (error) {
+      setLogoutBusy(false);
+      window.alert(error instanceof Error ? error.message : "Không thể đăng xuất");
+    }
   }
 
   return (
@@ -61,7 +69,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="mt-auto space-y-1 border-t pt-4">
           <button onClick={toggleTheme} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[var(--muted)] hover:bg-[var(--surface-soft)]">{dark ? <Sun size={18} /> : <Moon size={18} />}{dark ? "Chế độ sáng" : "Chế độ tối"}</button>
           <button onClick={() => { setGuideOpen(true); setOpen(false); }} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[var(--muted)] hover:bg-[var(--surface-soft)] hover:text-[var(--foreground)]"><BookOpen size={18} />Guide cài WireGuard</button>
-          <button onClick={logout} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[var(--muted)] hover:bg-red-500/10 hover:text-red-500"><LogOut size={18} />Đăng xuất</button>
+          <button onClick={logout} disabled={logoutBusy} aria-busy={logoutBusy} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[var(--muted)] hover:bg-red-500/10 hover:text-red-500"><>{logoutBusy ? <LoaderCircle className="animate-spin" size={18} /> : <LogOut size={18} />}{logoutBusy ? "Đang đăng xuất…" : "Đăng xuất"}</></button>
         </div>
       </aside>
       <main className="min-w-0 px-4 pb-10 pt-20 sm:px-6 lg:px-10 lg:pt-8">{children}</main>

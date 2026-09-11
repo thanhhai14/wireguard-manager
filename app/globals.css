@@ -44,5 +44,5 @@ button { cursor: pointer; }
 .input { @apply w-full rounded-xl border bg-[var(--surface)] px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500/30; }
 .label { @apply mb-1.5 block text-sm font-medium; }
 .btn-primary { @apply inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60; }
-.btn-secondary { @apply inline-flex items-center justify-center gap-2 rounded-xl border bg-[var(--surface)] px-4 py-2.5 text-sm font-semibold hover:bg-[var(--surface-soft)]; }
+.btn-secondary { @apply inline-flex items-center justify-center gap-2 rounded-xl border bg-[var(--surface)] px-4 py-2.5 text-sm font-semibold hover:bg-[var(--surface-soft)] disabled:cursor-not-allowed disabled:opacity-60; }
 .badge { @apply inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold; }

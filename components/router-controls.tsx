@@ -2,12 +2,13 @@
 
 import { Cable, LoaderCircle, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 
 export function RouterControls({ routerId, trusted }: { routerId: string; trusted: boolean }) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [isRefreshing, startRefresh] = useTransition();
   const polling = useRef(false);
 
   async function request(url: string, body?: unknown) {
@@ -26,7 +27,7 @@ export function RouterControls({ routerId, trusted }: { routerId: string; truste
         result = await request("/api/routers/test", { routerId, trustFingerprint: true });
       }
       setMessage(`Kết nối thành công · RouterOS ${result.version}`);
-      router.refresh();
+      startRefresh(() => router.refresh());
     } catch (error) { setMessage(error instanceof Error ? error.message : "Kết nối thất bại"); }
     finally { setBusy(null); }
   }
@@ -36,7 +37,7 @@ export function RouterControls({ routerId, trusted }: { routerId: string; truste
     try {
       const result = await request(`/api/routers/${routerId}/sync`);
       setMessage(`Đã đồng bộ ${result.interfaces} interface · ${result.importedPeers} peer mới`);
-      router.refresh();
+      startRefresh(() => router.refresh());
     } catch (error) { setMessage(error instanceof Error ? error.message : "Đồng bộ thất bại"); }
     finally { setBusy(null); }
   }
@@ -45,12 +46,13 @@ export function RouterControls({ routerId, trusted }: { routerId: string; truste
     const refresh = async () => {
       if (document.hidden || polling.current) return;
       polling.current = true;
-      try { await request(`/api/routers/${routerId}/status`); router.refresh(); } catch { /* status is shown from server */ }
+      try { await request(`/api/routers/${routerId}/status`); startRefresh(() => router.refresh()); } catch { /* status is shown from server */ }
       finally { polling.current = false; }
     };
     const timer = window.setInterval(refresh, 15_000);
     return () => window.clearInterval(timer);
   }, [routerId, router]);
 
-  return <div><div className="flex flex-wrap gap-2"><button className="btn-secondary" onClick={test} disabled={Boolean(busy)}>{busy === "test" ? <LoaderCircle className="animate-spin" size={17} /> : <Cable size={17} />}Kiểm tra kết nối</button><button className="btn-primary" onClick={sync} disabled={Boolean(busy)}>{busy === "sync" ? <LoaderCircle className="animate-spin" size={17} /> : <RefreshCw size={17} />}Đồng bộ từ Router</button></div>{message && <p className="mt-2 text-right text-xs text-[var(--muted)]">{message}</p>}</div>;
+  const disabled = Boolean(busy) || isRefreshing;
+  return <div><div className="flex flex-wrap gap-2"><button className="btn-secondary" onClick={test} disabled={disabled} aria-busy={busy === "test"}>{busy === "test" ? <LoaderCircle className="animate-spin" size={17} /> : <Cable size={17} />}Kiểm tra kết nối</button><button className="btn-primary" onClick={sync} disabled={disabled} aria-busy={busy === "sync"}>{busy === "sync" ? <LoaderCircle className="animate-spin" size={17} /> : <RefreshCw className={isRefreshing ? "animate-spin" : ""} size={17} />}{isRefreshing && !busy ? "Đang cập nhật…" : "Đồng bộ từ Router"}</button></div>{message && <p className="mt-2 text-right text-xs text-[var(--muted)]">{message}</p>}</div>;
 }
