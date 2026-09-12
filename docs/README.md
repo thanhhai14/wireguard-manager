@@ -34,6 +34,7 @@ Không có phần nào được ghi là “đã xác minh” nếu chỉ dựa t
 8. [Triển khai Cloudflare Tunnel](./08-DEPLOYMENT-CLOUDFLARE.md)
 9. [Rủi ro, quyết định và tiêu chí nghiệm thu](./09-RISKS-AND-ACCEPTANCE.md)
 10. [Bản đồ code hiện tại và điểm chuyển đổi](./10-CURRENT-CODE-MAP.md)
+11. [Backup Neon và chuyển dữ liệu sang VPS](./11-DATA-MIGRATION-RUNBOOK.md)
 
 ## Nguyên tắc dùng tài liệu
 
